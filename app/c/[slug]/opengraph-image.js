@@ -50,7 +50,7 @@ export default async function Imagen({ params }) {
         )}
         <div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 24 }}>
           {sup && <div style={{ fontSize: 22, letterSpacing: 4, textTransform: "uppercase", color: acento }}>{sup}</div>}
-          <div style={{ display: "flex", flexDirection: "column", fontFamily: "Fraunces", fontSize: c?.portada ? (largo ? 64 : 80) : (largo ? 76 : 96), lineHeight: 1.04, letterSpacing: -1.5 }}>
+          <div style={{ display: "flex", flexDirection: "column", fontFamily: "Fraunces", fontSize: c?.portada ? (largo ? 56 : 66) : (largo ? 72 : 88), lineHeight: 1.04, letterSpacing: -1.5 }}>
             <span>{c ? ocasion(c.ocasion).titulo : ""}</span>
             <span style={{ fontStyle: "italic", color: acento }}>{nombre}</span>
           </div>
