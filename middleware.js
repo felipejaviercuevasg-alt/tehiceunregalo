@@ -1,11 +1,12 @@
+import { SUPABASE_URL, SUPABASE_ANON } from "@/lib/env";
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 // Mantiene viva la sesión de Supabase en cada visita.
 export async function middleware(request) {
   let response = NextResponse.next({ request });
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return response;
-  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+  if (!SUPABASE_URL) return response;
+  const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON, {
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (list) => {

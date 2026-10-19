@@ -1,8 +1,9 @@
 import "./globals.css";
 import Link from "next/link";
 import { usuarioActual } from "@/lib/supabase";
+import { limpio } from "@/lib/env";
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://www.tehiceunregalo.cl";
+const SITE = limpio(process.env.NEXT_PUBLIC_SITE_URL).replace(/\/+$/, "") || "https://www.tehiceunregalo.cl";
 
 export const metadata = {
   metadataBase: new URL(SITE),

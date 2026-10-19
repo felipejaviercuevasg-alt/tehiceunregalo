@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { adminDb, usuarioActual, esAdmin } from "@/lib/supabase";
 import { pesos, tituloCelebracion } from "@/lib/datos";
+import { limpio } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Mis celebraciones · Te hice un regalo" };
@@ -60,7 +61,7 @@ export default async function MisCelebraciones() {
               {c.transferido_at && <p className="aviso" style={{ marginTop: 14 }}>Transferimos {pesos(c.transferido_monto)} a tu cuenta el {new Date(c.transferido_at).toLocaleDateString("es-CL")}.</p>}
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap", margin: "18px 0" }}>
                 <Link className="btn btn-oscuro btn-chico" href={`/c/${c.slug}`}>Ver mi celebración</Link>
-                <a className="btn btn-secundario btn-chico" target="_blank" rel="noopener" href={"https://wa.me/?text=" + encodeURIComponent(`${tituloCelebracion(c)} 🎁 Regálale algo que de verdad quiere: ${process.env.NEXT_PUBLIC_SITE_URL}/c/${c.slug}`)}>Compartir por WhatsApp</a>
+                <a className="btn btn-secundario btn-chico" target="_blank" rel="noopener" href={"https://wa.me/?text=" + encodeURIComponent(`${tituloCelebracion(c)} 🎁 Regálale algo que de verdad quiere: ${limpio(process.env.NEXT_PUBLIC_SITE_URL).replace(/\/+$/, "")}/c/${c.slug}`)}>Compartir por WhatsApp</a>
               </div>
               {ap.length > 0 && (
                 <details>
