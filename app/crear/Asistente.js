@@ -3,6 +3,7 @@ import { useState, useRef } from "react";
 import { deseosPara } from "@/lib/deseos";
 import { rutValido } from "@/lib/rut";
 import { REDES, enlaceRed } from "@/lib/redes";
+import { LISTA_OCASIONES, ocasion as datosOcasion } from "@/lib/ocasiones";
 
 const PASOS = ["Tu celebración", "Regalos", "Buenos deseos", "Recibir el dinero", "Compartir"];
 const BANCOS = ["Banco de Chile / Edwards", "BancoEstado", "Santander", "BCI / MACH", "Scotiabank", "Itaú", "Banco Security", "Banco BICE", "Banco Falabella", "Banco Ripley", "Banco Consorcio", "Banco Internacional", "Coopeuch", "Tenpo", "Mercado Pago", "Otro"];
@@ -44,7 +45,7 @@ export default function Asistente({ email }) {
   const [copiado, setCopiado] = useState(false);
 
   const ir = (n) => { setError(""); setPaso(n); window.scrollTo({ top: 0, behavior: "smooth" }); };
-  const etiquetaNombre = ocasion === "matrimonio" ? "Nombres de los novios" : ocasion === "baby-shower" ? "Nombre del bebé o de los papás" : "Tu nombre";
+  const etiquetaNombre = datosOcasion(ocasion).etiquetaNombre;
 
   function aPaso2(e) {
     e.preventDefault();
@@ -116,12 +117,12 @@ export default function Asistente({ email }) {
         <form className="tarjeta" onSubmit={aPaso2}>
           <h2 style={{ fontSize: "1.5rem", marginBottom: 20 }}>¿Qué celebras?</h2>
           <div className="ocasiones" role="group" aria-label="Ocasión">
-            {[["cumpleanos", "Cumpleaños"], ["matrimonio", "Matrimonio"], ["baby-shower", "Baby shower"]].map(([v, t]) => (
+            {LISTA_OCASIONES.map(({ id: v, nombre: t }) => (
               <button type="button" key={v} className="ocasion" aria-pressed={ocasion === v} onClick={() => setOcasion(v)}>{t}</button>
             ))}
           </div>
           <div style={{ marginTop: 24 }}>
-            <div className="campo"><label htmlFor="nombre">{etiquetaNombre}</label><input type="text" id="nombre" maxLength={80} required value={datos.nombre} onChange={(e) => setDatos({ ...datos, nombre: e.target.value })} placeholder={ocasion === "matrimonio" ? "Ej: Camila y Andrés" : ocasion === "baby-shower" ? "Ej: Agustín" : "Ej: Camila"} /></div>
+            <div className="campo"><label htmlFor="nombre">{etiquetaNombre}</label><input type="text" id="nombre" maxLength={80} required value={datos.nombre} onChange={(e) => setDatos({ ...datos, nombre: e.target.value })} placeholder={datosOcasion(ocasion).ejemplo} /></div>
             <div className="fila">
               {ocasion === "cumpleanos" && (
                 <div className="campo"><label htmlFor="edad">¿Cuántos años cumples?</label><input type="number" id="edad" min={1} max={120} value={datos.edad} onChange={(e) => setDatos({ ...datos, edad: e.target.value })} placeholder="Ej: 30" /><p className="ayuda">Lo usamos para sugerirte buenos deseos.</p></div>
@@ -181,7 +182,7 @@ export default function Asistente({ email }) {
         <div>
           <div className="tarjeta" style={{ marginBottom: 20 }}>
             <h2 style={{ fontSize: "1.5rem" }}>Buenos deseos</h2>
-            <p className="gris" style={{ marginTop: 8 }}>Te sugerimos estos deseos para {ocasion === "matrimonio" ? "un matrimonio" : ocasion === "baby-shower" ? "un baby shower" : "un cumpleaños" + (datos.edad ? ` de ${datos.edad} años` : "")}. Marca los que quieras ofrecer, edita el texto a tu gusto o escribe los tuyos. Cada invitado podrá elegir uno y regalártelo con el monto que quiera.</p>
+            <p className="gris" style={{ marginTop: 8 }}>Te sugerimos estos deseos para {datosOcasion(ocasion).para + (ocasion === "cumpleanos" && datos.edad ? ` de ${datos.edad} años` : "")}. Marca los que quieras ofrecer, edita el texto a tu gusto o escribe los tuyos. Cada invitado podrá elegir uno y regalártelo con el monto que quiera.</p>
           </div>
           {deseos.map((d, i) => {
             const set = (cambio) => setDeseos(deseos.map((x, j) => (j === i ? { ...x, ...cambio } : x)));

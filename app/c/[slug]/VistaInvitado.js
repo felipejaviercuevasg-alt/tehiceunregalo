@@ -6,7 +6,7 @@ import { REDES } from "@/lib/redes";
 import IconoRed from "./IconoRed";
 
 const pesos = (n) => "$" + Math.round(n || 0).toLocaleString("es-CL");
-const OCASIONES = { cumpleanos: "Cumpleaños", matrimonio: "Matrimonio", "baby-shower": "Baby shower" };
+import { OCASIONES, ocasion as datosOcasion } from "@/lib/ocasiones";
 const RAPIDOS_PCT = [5, 10, 25, 50, 100];
 const RAPIDOS_MONTO = [5000, 10000, 20000, 50000];
 

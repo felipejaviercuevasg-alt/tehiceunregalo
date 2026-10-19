@@ -5,6 +5,7 @@ import { cifrar } from "@/lib/cripto";
 import { rutValido } from "@/lib/rut";
 import { tituloCelebracion } from "@/lib/datos";
 import { leerLugar } from "@/lib/lugar";
+import { ocasionValida } from "@/lib/ocasiones";
 import { leerRedes } from "@/lib/redes";
 
 const txt = (v, max) => String(v ?? "").trim().slice(0, max);
@@ -21,7 +22,7 @@ export async function POST(request) {
   let b;
   try { b = await request.json(); } catch { return NextResponse.json({ error: "Datos inválidos." }, { status: 400 }); }
 
-  const ocasion = ["cumpleanos", "matrimonio", "baby-shower"].includes(b.ocasion) ? b.ocasion : null;
+  const ocasion = ocasionValida(b.ocasion) ? b.ocasion : null;
   const nombre = txt(b.nombre, 80);
   if (!ocasion || !nombre) return NextResponse.json({ error: "Falta la ocasión o el nombre." }, { status: 400 });
   const edad = ocasion === "cumpleanos" && b.edad ? Math.max(0, Math.min(130, parseInt(b.edad, 10) || 0)) : null;

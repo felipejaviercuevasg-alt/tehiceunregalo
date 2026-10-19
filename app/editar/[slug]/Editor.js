@@ -6,7 +6,7 @@ import { TEMAS, estiloPortada, posValida } from "@/lib/temas";
 import { REDES, enlaceRed, valorEditable } from "@/lib/redes";
 
 const BANCOS = ["Banco de Chile / Edwards", "BancoEstado", "Santander", "BCI / MACH", "Scotiabank", "Itaú", "Banco Security", "Banco BICE", "Banco Falabella", "Banco Ripley", "Banco Consorcio", "Banco Internacional", "Coopeuch", "Tenpo", "Mercado Pago", "Otro"];
-const OCASIONES = { cumpleanos: "Cumpleaños", matrimonio: "Matrimonio", "baby-shower": "Baby shower" };
+import { OCASIONES, ocasion as datosOcasion } from "@/lib/ocasiones";
 const pesos = (n) => "$" + Math.round(n || 0).toLocaleString("es-CL");
 let contador = 0;
 const clave = () => "k" + ++contador;
@@ -168,7 +168,7 @@ export default function Editor({ inicial }) {
     }
   }
 
-  const etiquetaNombre = inicial.ocasion === "matrimonio" ? "Nombres de los novios" : inicial.ocasion === "baby-shower" ? "Nombre del bebé o de los papás" : "Tu nombre";
+  const etiquetaNombre = datosOcasion(inicial.ocasion).etiquetaNombre;
 
   return (
     <>

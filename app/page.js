@@ -6,7 +6,7 @@ export default function Inicio() {
       <section className="hero">
         <div className="contenedor hero-grid">
           <div>
-            <span className="etiqueta">Cumpleaños · Matrimonios · Baby showers</span>
+            <span className="etiqueta">Cumpleaños · Matrimonios · Showers · Graduaciones</span>
             <h1 style={{ marginTop: 14 }}>Recibe el regalo que <span>de verdad quieres</span>.</h1>
             <p className="bajada">Arma tu lista de regalos soñados con una meta, comparte el enlace y deja que cada invitado aporte desde el 1% hasta el 100%. O pide buenos deseos. Nada de regalos repetidos ni cajas que no vas a usar.</p>
             <div className="acciones">
@@ -62,7 +62,7 @@ export default function Inicio() {
             <span className="etiqueta">Si eres el festejado o festejada</span>
             <h3>Crea tu celebración en minutos</h3>
             {[
-              ["Cuéntanos la ocasión", "Cumpleaños, matrimonio o baby shower, y la fecha."],
+              ["Cuéntanos la ocasión", "Cumpleaños, matrimonio, baby shower, home shower, graduación u otra ocasión especial, y la fecha."],
               ["Agrega tus regalos soñados", "Nombre, foto o link, y el monto de la meta."],
               ["Elige tus buenos deseos", "Te sugerimos los ideales para tu ocasión. Puedes editarlos o crear los tuyos."],
               ["Comparte el enlace", "Por WhatsApp, Instagram o donde quieras, y mira cómo avanza tu meta."],
@@ -99,6 +99,9 @@ export default function Inicio() {
             <div className="tarjeta"><h3>Cumpleaños</h3><p className="gris">Deseos distintos para 18–25, 26–39, 40–56 y 57 años o más.</p><p className="cita">“Te regalo un día sin obligaciones”</p></div>
             <div className="tarjeta"><h3>Matrimonio</h3><p className="gris">Para la luna de miel, el hogar soñado o las primeras discusiones.</p><p className="cita">“Te regalo mil citas después del sí”</p></div>
             <div className="tarjeta"><h3>Baby shower</h3><p className="gris">Para pañales, el primer outfit y las desveladas de mamá.</p><p className="cita">“Te regalo tu primer kit de bañito”</p></div>
+            <div className="tarjeta"><h3>Home shower</h3><p className="gris">Para estrenar casa: la cocina, el rincón favorito y las cuentas del cambio.</p><p className="cita">“Te regalo la primera once en tu casa nueva”</p></div>
+            <div className="tarjeta"><h3>Graduación</h3><p className="gris">Para el viaje de celebración, el primer traje o el emprendimiento.</p><p className="cita">“Te regalo el primer paso de tu nueva etapa”</p></div>
+            <div className="tarjeta"><h3>Ocasión especial</h3><p className="gris">Un logro, una despedida, un nuevo trabajo: lo que tú quieras celebrar.</p><p className="cita">“Te regalo un gusto que te mereces”</p></div>
           </div>
         </div>
       </section>
