@@ -12,7 +12,7 @@ export default async function Editar({ params }) {
   if (!user) redirect(`/entrar?next=/editar/${slug}`);
   const db = adminDb();
   const { data: c } = await db.from("celebraciones")
-    .select("id, slug, owner_id, nombre, ocasion, edad, fecha, mensaje, estado, banco_resumen, portada, tema")
+    .select("id, slug, owner_id, nombre, ocasion, edad, fecha, mensaje, estado, banco_resumen, portada, tema, portada_pos")
     .eq("slug", slug).maybeSingle();
   if (!c || (c.owner_id !== user.id && !esAdmin(user))) notFound();
 
@@ -26,7 +26,7 @@ export default async function Editar({ params }) {
   const inicial = {
     id: c.id, slug: c.slug, nombre: c.nombre, ocasion: c.ocasion, edad: c.edad ?? "", fecha: c.fecha || "",
     mensaje: c.mensaje || "", estado: c.estado, banco_resumen: c.banco_resumen,
-    portada: c.portada || "", tema: c.tema || "azul", pagoFinal: !!fin?.length,
+    portada: c.portada || "", tema: c.tema || "azul", portada_pos: c.portada_pos || "50% 50%", pagoFinal: !!fin?.length,
     regalos: (regalos || []).map((r) => ({
       ...r, descripcion: r.descripcion || "", link: r.link || "", foto: r.foto || "",
       reunido: ap.filter((a) => a.regalo_id === r.id).reduce((s, a) => s + a.monto, 0),

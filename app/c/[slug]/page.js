@@ -19,7 +19,7 @@ export default async function Celebracion({ params }) {
   if (!c) notFound();
   // Solo lo necesario para el navegador: sin dueño ni montos individuales.
   const publico = {
-    slug: c.slug, nombre: c.nombre, ocasion: c.ocasion, fecha: c.fecha, mensaje: c.mensaje, estado: c.estado, portada: c.portada, tema: c.tema,
+    slug: c.slug, nombre: c.nombre, ocasion: c.ocasion, fecha: c.fecha, mensaje: c.mensaje, estado: c.estado, portada: c.portada, tema: c.tema, portada_pos: c.portada_pos,
     total: c.total, personas: c.personas, regalos: c.regalos, deseos: c.deseos,
     aportes: c.aportes.map((a) => ({ nombre: a.nombre, mensaje: a.mensaje, regalo_id: a.regalo_id, deseo_id: a.deseo_id })),
   };

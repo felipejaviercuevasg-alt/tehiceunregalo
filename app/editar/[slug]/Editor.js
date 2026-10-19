@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { deseosPara } from "@/lib/deseos";
 import { rutValido } from "@/lib/rut";
-import { TEMAS, estiloPortada } from "@/lib/temas";
+import { TEMAS, estiloPortada, posValida } from "@/lib/temas";
 
 const BANCOS = ["Banco de Chile / Edwards", "BancoEstado", "Santander", "BCI / MACH", "Scotiabank", "Itaú", "Banco Security", "Banco BICE", "Banco Falabella", "Banco Ripley", "Banco Consorcio", "Banco Internacional", "Coopeuch", "Tenpo", "Mercado Pago", "Otro"];
 const OCASIONES = { cumpleanos: "Cumpleaños", matrimonio: "Matrimonio", "baby-shower": "Baby shower" };
@@ -30,6 +30,32 @@ function fotoComoDato(file, max = 700, calidad = 0.78) {
   });
 }
 
+// Vista previa de la portada con foto; se puede arrastrar para mover el encuadre.
+function VistaFoto({ tema, portada, pos, setPos, ancho = false, datos, ocasion }) {
+  const ref = useRef(null);
+  const arrastre = useRef(null);
+  const abajo = (e) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    arrastre.current = { x: e.clientX, y: e.clientY, pos };
+  };
+  const mueve = (e) => {
+    const a = arrastre.current; if (!a) return;
+    const r = ref.current.getBoundingClientRect();
+    // Arrastrar hacia la derecha muestra más de la izquierda de la foto (como mover la foto con el dedo).
+    const k = (v) => Math.max(0, Math.min(100, Math.round(v)));
+    setPos([k(a.pos[0] - ((e.clientX - a.x) / r.width) * 100), k(a.pos[1] - ((e.clientY - a.y) / r.height) * 100)]);
+  };
+  const suelta = () => { arrastre.current = null; };
+  return (
+    <div ref={ref} className={"vista-portada vista-foto" + (ancho ? " ancha" : " angosta")}
+      style={{ ...estiloPortada(tema, portada, `${pos[0]}% ${pos[1]}%`), color: "var(--p-texto)" }}
+      onPointerDown={abajo} onPointerMove={mueve} onPointerUp={suelta} onPointerCancel={suelta}>
+      <span className="etiqueta">{OCASIONES[ocasion]}</span>
+      <h3>{datos.nombre || "Tu nombre"}</h3>
+    </div>
+  );
+}
+
 function mover(lista, i, d) {
   const j = i + d;
   if (j < 0 || j >= lista.length) return lista;
@@ -41,6 +67,7 @@ export default function Editor({ inicial }) {
   const [tema, setTema] = useState(inicial.tema);
   const [portada, setPortada] = useState(inicial.portada);
   const [portadaCambio, setPortadaCambio] = useState(false);
+  const [pos, setPos] = useState(() => posValida(inicial.portada_pos).split(" ").map((v) => parseInt(v, 10)));
   const [regalos, setRegalos] = useState(() => inicial.regalos.map((r) => ({ ...r, k: clave(), fotoCambio: false })));
   const [deseos, setDeseos] = useState(() => inicial.deseos.map((d) => ({ ...d, k: clave() })));
   const [abierta, setAbierta] = useState(inicial.estado === "activa");
@@ -69,7 +96,7 @@ export default function Editor({ inicial }) {
     if (!f) return;
     const dato = await fotoComoDato(f, 1600, 0.8);
     if (!dato) return setError("No pudimos leer esa foto. Prueba con otra.");
-    setPortada(dato); setPortadaCambio(true); marcar();
+    setPortada(dato); setPortadaCambio(true); setPos([50, 50]); marcar();
   }
   async function elegirFotoRegalo(i, e) {
     const f = e.target.files?.[0]; e.target.value = "";
@@ -115,7 +142,7 @@ export default function Editor({ inicial }) {
       const res = await fetch(`/api/celebraciones/${inicial.id}`, {
         method: "PUT", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...datos, tema, estado: abierta ? "activa" : "cerrada",
+          ...datos, tema, estado: abierta ? "activa" : "cerrada", portada_pos: `${pos[0]}% ${pos[1]}%`,
           ...(portadaCambio ? { portada } : {}),
           regalos: regalos.map((r) => ({ id: r.id, nombre: r.nombre, descripcion: r.descripcion, link: r.link.trim(), meta: Math.round(Number(r.meta)), ...(r.fotoCambio ? { foto: r.foto } : {}) })),
           deseos: deseos.map((d) => ({ id: d.id, titulo: d.titulo, descripcion: d.descripcion })),
@@ -145,11 +172,31 @@ export default function Editor({ inicial }) {
       <section className="tarjeta ed-seccion" style={{ padding: 28 }}>
         <h2>Portada</h2>
         <p className="gris">Es lo primero que ven tus invitados. Sube una foto tuya o elige un color.</p>
-        <div className={"vista-portada"} style={{ ...estiloPortada(tema, portada), color: "var(--p-texto)", background: portada ? undefined : "var(--p-fondo)", minHeight: portada ? 200 : 0, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
-          <span className="etiqueta">{OCASIONES[inicial.ocasion]}</span>
-          <h3>{datos.nombre || "Tu nombre"}</h3>
-          {datos.fecha && <p>{new Date(datos.fecha + "T12:00:00").toLocaleDateString("es-CL", { weekday: "long", day: "numeric", month: "long" })}</p>}
-        </div>
+        {portada ? (
+          <>
+            <div className="vistas-foto">
+              <div>
+                <span className="ayuda">En computador</span>
+                <VistaFoto tema={tema} portada={portada} pos={pos} setPos={(p) => { setPos(p); marcar(); }} ancho datos={datos} ocasion={inicial.ocasion} />
+              </div>
+              <div>
+                <span className="ayuda">En celular</span>
+                <VistaFoto tema={tema} portada={portada} pos={pos} setPos={(p) => { setPos(p); marcar(); }} datos={datos} ocasion={inicial.ocasion} />
+              </div>
+            </div>
+            <p className="ayuda" style={{ margin: "4px 0 10px" }}><strong>Arrastra la foto</strong> para encuadrarla, o usa las barras.</p>
+            <div className="fila" style={{ marginBottom: 14 }}>
+              <div><label htmlFor="posX" style={{ fontSize: ".88rem" }}>Mover a los lados</label><input type="range" id="posX" min={0} max={100} value={pos[0]} onChange={(e) => { setPos([+e.target.value, pos[1]]); marcar(); }} /></div>
+              <div><label htmlFor="posY" style={{ fontSize: ".88rem" }}>Mover arriba / abajo</label><input type="range" id="posY" min={0} max={100} value={pos[1]} onChange={(e) => { setPos([pos[0], +e.target.value]); marcar(); }} /></div>
+            </div>
+          </>
+        ) : (
+          <div className="vista-portada" style={{ ...estiloPortada(tema, ""), color: "var(--p-texto)", background: "var(--p-fondo)" }}>
+            <span className="etiqueta">{OCASIONES[inicial.ocasion]}</span>
+            <h3>{datos.nombre || "Tu nombre"}</h3>
+            {datos.fecha && <p>{new Date(datos.fecha + "T12:00:00").toLocaleDateString("es-CL", { weekday: "long", day: "numeric", month: "long" })}</p>}
+          </div>
+        )}
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 18 }}>
           <label className="btn btn-oscuro btn-chico" style={{ margin: 0 }}>
             {portada ? "Cambiar foto de portada" : "Subir foto de portada"}

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { adminDb, usuarioActual, esAdmin } from "@/lib/supabase";
 import { cifrar } from "@/lib/cripto";
 import { rutValido } from "@/lib/rut";
-import { TEMAS } from "@/lib/temas";
+import { TEMAS, posValida } from "@/lib/temas";
 import { pesos } from "@/lib/datos";
 
 const txt = (v, max) => String(v ?? "").trim().slice(0, max);
@@ -32,6 +32,7 @@ export async function PUT(request, { params }) {
     edad: cel.ocasion === "cumpleanos" && b.edad ? Math.max(0, Math.min(130, parseInt(b.edad, 10) || 0)) : null,
     mensaje: txt(b.mensaje, 400) || null,
     tema: TEMAS[b.tema] ? b.tema : "azul",
+    portada_pos: posValida(b.portada_pos),
   };
   if (b.portada !== undefined) {
     if (b.portada === "" || b.portada === null) cambios.portada = null;

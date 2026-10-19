@@ -82,7 +82,7 @@ export default function VistaInvitado({ cel, titulo, demo = false, esDueno = fal
           <div className="contenedor"><span>Así ven tu celebración tus invitados.</span><a href={`/editar/${cel.slug}`}>Editar y personalizar →</a></div>
         </div>
       )}
-      <section className={"portada" + (cel.portada ? " con-foto" : "")} style={estiloPortada(cel.tema, cel.portada)}>
+      <section className={"portada" + (cel.portada ? " con-foto" : "")} style={estiloPortada(cel.tema, cel.portada, cel.portada_pos)}>
         <div className="contenedor">
           <span className="etiqueta">{demo ? "Ejemplo · " : ""}{OCASIONES[cel.ocasion]}</span>
           <h1>{titulo}</h1>

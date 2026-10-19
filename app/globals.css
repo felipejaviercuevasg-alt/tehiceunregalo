@@ -255,3 +255,11 @@ details p{color:var(--gris);margin-top:10px;max-width:760px}
 }
 .ed-item .prefijo input{padding-left:30px}
 .barra-dueno .contenedor{padding-top:8px;padding-bottom:8px}
+.vistas-foto{display:grid;grid-template-columns:1fr 130px;gap:14px;align-items:end;margin-bottom:6px}
+.vista-foto{margin:4px 0 0;cursor:grab;touch-action:none;user-select:none;display:flex;flex-direction:column;justify-content:flex-end;padding:18px}
+.vista-foto:active{cursor:grabbing}
+.vista-foto.ancha{aspect-ratio:2.5/1}
+.vista-foto.angosta{aspect-ratio:9/13;padding:12px}
+.vista-foto.angosta h3{font-size:1rem}
+.vista-foto.angosta .etiqueta{font-size:.6rem}
+.vista-foto h3{color:var(--p-texto)}
