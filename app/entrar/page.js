@@ -17,7 +17,9 @@ function Formulario() {
     let error;
     try {
       const sb = browserClient();
-      const destino = `${window.location.origin}/auth/callback?next=${encodeURIComponent(siguiente.startsWith("/") ? siguiente : "/")}`;
+      const ir = siguiente.startsWith("/") && !siguiente.startsWith("//") ? siguiente : "/mis-celebraciones";
+      document.cookie = `thur_next=${encodeURIComponent(ir)}; path=/; max-age=3600; samesite=lax; secure`;
+      const destino = `${window.location.origin}/auth/callback`;
       ({ error } = await sb.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: destino } }));
     } catch (e) {
       error = e;
