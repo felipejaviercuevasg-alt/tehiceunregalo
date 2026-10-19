@@ -210,3 +210,4 @@ details p{color:var(--gris);margin-top:10px;max-width:760px}
   .regalo-item .miniatura{width:64px;height:64px}
   .regalo-item .acciones-item{grid-column:1 / -1}
 }
+.chip-estado.urgente{background:#FBE3DA;color:#8A2E14}

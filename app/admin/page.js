@@ -3,9 +3,12 @@ import { revalidatePath } from "next/cache";
 import { adminDb, usuarioActual, esAdmin } from "@/lib/supabase";
 import { descifrar } from "@/lib/cripto";
 import { pesos, tituloCelebracion } from "@/lib/datos";
+import { estadoPagos, ETIQUETA_ESTADO, fechaCorta } from "@/lib/pagos";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Administración · Te hice un regalo", robots: { index: false } };
+
+const comisionPct = () => Number(process.env.COMISION_PCT || 0);
 
 async function exigirAdmin() {
   const user = await usuarioActual();
@@ -14,12 +17,31 @@ async function exigirAdmin() {
   return user;
 }
 
-async function marcarTransferido(formData) {
+async function cargar(db, ids) {
+  let qc = db.from("celebraciones").select("id, slug, nombre, ocasion, fecha, estado, owner_email, banco_cifrado, banco_resumen, created_at");
+  if (ids) qc = qc.in("id", ids);
+  let qa = db.from("aportes").select("celebracion_id, monto, aprobado_at").eq("estado", "aprobado");
+  if (ids) qa = qa.in("celebracion_id", ids);
+  let qt = db.from("transferencias").select("celebracion_id, monto, comision, final, created_at").order("created_at");
+  if (ids) qt = qt.in("celebracion_id", ids);
+  const [{ data: cels }, { data: aportes }, { data: transf, error: errT }] = await Promise.all([qc, qa, qt]);
+  return { cels: cels || [], aportes: aportes || [], transf: transf || [], errT };
+}
+
+// Registra una transferencia por todo lo pendiente (recalculado en el servidor).
+async function registrarTransferencia(formData) {
   "use server";
   await exigirAdmin();
   const id = String(formData.get("id"));
-  const monto = Math.round(Number(formData.get("monto")));
-  await adminDb().from("celebraciones").update({ transferido_at: new Date().toISOString(), transferido_monto: monto, estado: "cerrada" }).eq("id", id);
+  const db = adminDb();
+  const { cels, aportes, transf } = await cargar(db, [id]);
+  const c = cels[0];
+  if (!c) return;
+  const e = estadoPagos({ celebracion: c, aportes, transferencias: transf, comisionPct: comisionPct() });
+  if (e.pendiente <= 0) return;
+  await db.from("transferencias").insert({ celebracion_id: id, monto: e.pendiente, comision: e.comisionPendiente, final: e.celebracionPasada });
+  // Después del pago final, la celebración deja de recibir aportes.
+  if (e.celebracionPasada) await db.from("celebraciones").update({ estado: "cerrada" }).eq("id", id);
   revalidatePath("/admin");
 }
 
@@ -37,49 +59,62 @@ export default async function Admin({ searchParams }) {
   const sp = await searchParams;
   const filtro = sp.f || "por-pagar";
   const db = adminDb();
-  const { data: cels } = await db.from("celebraciones")
-    .select("id, slug, nombre, ocasion, fecha, estado, owner_email, banco_cifrado, banco_resumen, transferido_at, transferido_monto, created_at")
-    .order("fecha", { ascending: true });
-  const { data: aportes } = await db.from("aportes").select("celebracion_id, monto").eq("estado", "aprobado");
-  const comisionPct = Number(process.env.COMISION_PCT || 0);
-  const hoy = new Date().toISOString().slice(0, 10);
+  const { cels, aportes, transf, errT } = await cargar(db);
+  const pct = comisionPct();
 
-  const filas = (cels || []).map((c) => {
-    const total = (aportes || []).filter((a) => a.celebracion_id === c.id).reduce((s, a) => s + a.monto, 0);
-    const comision = Math.round((total * comisionPct) / 100);
-    return { ...c, total, comision, aTransferir: total - comision, paso: c.fecha && c.fecha < hoy };
-  }).filter((c) =>
-    filtro === "todas" ? true :
-    filtro === "transferidas" ? !!c.transferido_at :
-    !c.transferido_at && c.paso && c.total > 0);
+  const todas = cels.map((c) => {
+    const e = estadoPagos({
+      celebracion: c,
+      aportes: aportes.filter((a) => a.celebracion_id === c.id),
+      transferencias: transf.filter((t) => t.celebracion_id === c.id),
+      comisionPct: pct,
+    });
+    return { ...c, e, historial: transf.filter((t) => t.celebracion_id === c.id) };
+  });
+  const orden = { atrasada: 0, final: 1, toca: 2, programada: 3, "al-dia": 4 };
+  const filas = todas
+    .filter((c) => filtro === "todas" ? true : filtro === "proximas" ? c.e.estado === "programada" : ["atrasada", "final", "toca"].includes(c.e.estado))
+    .sort((a, b) => orden[a.e.estado] - orden[b.e.estado] || (a.e.vence?.getTime() || 9e15) - (b.e.vence?.getTime() || 9e15));
 
-  const totalGeneral = (aportes || []).reduce((s, a) => s + a.monto, 0);
+  const porPagar = todas.filter((c) => ["atrasada", "final", "toca"].includes(c.e.estado));
+  const totalPorPagar = porPagar.reduce((s, c) => s + c.e.pendiente, 0);
+  const totalGeneral = aportes.reduce((s, a) => s + a.monto, 0);
 
   return (
     <main className="pagina">
       <div className="contenedor">
         <span className="etiqueta">Administración</span>
-        <h1 style={{ fontSize: "clamp(1.9rem,4vw,2.6rem)", margin: "8px 0 8px" }}>Celebraciones</h1>
-        <p className="gris" style={{ marginBottom: 20 }}>Recaudado en total: <strong>{pesos(totalGeneral)}</strong> · Comisión configurada: {comisionPct}%</p>
+        <h1 style={{ fontSize: "clamp(1.9rem,4vw,2.6rem)", margin: "8px 0 8px" }}>Transferencias</h1>
+        <p className="gris" style={{ marginBottom: 20 }}>
+          Recaudado en total: <strong>{pesos(totalGeneral)}</strong> · Por transferir hoy: <strong>{pesos(totalPorPagar)}</strong> en {porPagar.length} {porPagar.length === 1 ? "celebración" : "celebraciones"} · Comisión: {pct}%
+        </p>
+        {errT && <p className="error" style={{ marginBottom: 16 }}>Falta crear la tabla de transferencias en Supabase (archivo supabase/002_transferencias.sql).</p>}
         <div className="rapidos" style={{ marginBottom: 20 }}>
-          {[["por-pagar", "Por transferir"], ["transferidas", "Transferidas"], ["todas", "Todas"]].map(([v, t]) => (
+          {[["por-pagar", `Por transferir (${porPagar.length})`], ["proximas", "Próximas"], ["todas", "Todas"]].map(([v, t]) => (
             <a key={v} className="rapido" style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }} aria-pressed={filtro === v} href={`/admin?f=${v}`}>{t}</a>
           ))}
         </div>
-        {filtro === "por-pagar" && <p className="aviso" style={{ marginBottom: 18 }}>Celebraciones cuya fecha ya pasó, con dinero reunido y sin transferir. Antes de transferir, verifica en tu cuenta de Mercado Pago que el dinero ya esté disponible.</p>}
+        <p className="aviso" style={{ marginBottom: 18 }}>
+          Regla: se transfiere lo reunido <strong>cada 7 días</strong> y el saldo final <strong>a más tardar 24 horas después</strong> del día de la celebración. Transfiere desde tu banco o Mercado Pago y luego presiona <strong>Registrar transferencia</strong>.
+        </p>
         <div className="caja-scroll">
           <table className="tabla">
-            <thead><tr><th>Fecha</th><th>Celebración</th><th>Reunido</th><th>A transferir</th><th>Cuenta</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Estado</th><th>Celebración</th><th>Reunido</th><th>Ya transferido</th><th>A transferir</th><th>Cuenta</th><th></th></tr></thead>
             <tbody>
-              {!filas.length && <tr><td colSpan={6} className="gris">No hay celebraciones en esta lista.</td></tr>}
+              {!filas.length && <tr><td colSpan={7} className="gris">No hay celebraciones en esta lista.</td></tr>}
               {filas.map((c) => {
                 const b = descifrar(c.banco_cifrado);
+                const [txt, clase] = ETIQUETA_ESTADO[c.e.estado];
                 return (
                   <tr key={c.id}>
-                    <td>{c.fecha}</td>
-                    <td><a href={`/c/${c.slug}`} target="_blank">{tituloCelebracion(c)}</a><br /><span className="gris">{c.owner_email}</span></td>
-                    <td>{pesos(c.total)}</td>
-                    <td><strong>{pesos(c.aTransferir)}</strong>{c.comision > 0 && <><br /><span className="gris">comisión {pesos(c.comision)}</span></>}</td>
+                    <td>
+                      <span className={"chip-estado " + clase}>{txt}</span>
+                      {c.e.pendiente > 0 && <><br /><span className="gris" style={{ fontSize: ".82rem" }}>Vence {fechaCorta(c.e.vence)}</span></>}
+                    </td>
+                    <td><a href={`/c/${c.slug}`} target="_blank">{tituloCelebracion(c)}</a><br /><span className="gris">{c.fecha ? `Fecha: ${fechaCorta(c.fecha + "T12:00:00")}` : ""} · {c.owner_email}</span></td>
+                    <td>{pesos(c.e.total)}</td>
+                    <td>{pesos(c.e.transferido)}{c.historial.length > 0 && <><br /><span className="gris" style={{ fontSize: ".82rem" }}>{c.historial.length} pago{c.historial.length > 1 ? "s" : ""} · último {fechaCorta(c.e.ultima)}</span></>}</td>
+                    <td><strong>{pesos(c.e.pendiente)}</strong>{c.e.comisionPendiente > 0 && <><br /><span className="gris" style={{ fontSize: ".82rem" }}>comisión {pesos(c.e.comisionPendiente)}</span></>}</td>
                     <td>
                       <details style={{ padding: 0, border: 0 }}>
                         <summary style={{ fontSize: ".9rem" }}>{c.banco_resumen}</summary>
@@ -91,23 +126,18 @@ export default async function Admin({ searchParams }) {
                       </details>
                     </td>
                     <td>
-                      {c.transferido_at ? (
-                        <span className="chip-estado ok">Transferido {pesos(c.transferido_monto)}<br />{new Date(c.transferido_at).toLocaleDateString("es-CL")}</span>
-                      ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
-                          <span className={"chip-estado " + (c.estado === "activa" ? "pend" : "")}>{c.estado === "activa" ? "Activa" : "Cerrada"}</span>
-                          {c.total > 0 && (
-                            <form action={marcarTransferido}>
-                              <input type="hidden" name="id" value={c.id} /><input type="hidden" name="monto" value={c.aTransferir} />
-                              <button className="btn btn-primario btn-chico">Marcar transferido</button>
-                            </form>
-                          )}
-                          <form action={cambiarEstado}>
-                            <input type="hidden" name="id" value={c.id} /><input type="hidden" name="estado" value={c.estado === "activa" ? "cerrada" : "activa"} />
-                            <button className="btn-texto">{c.estado === "activa" ? "Cerrar" : "Reabrir"}</button>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
+                        {c.e.pendiente > 0 && (
+                          <form action={registrarTransferencia}>
+                            <input type="hidden" name="id" value={c.id} />
+                            <button className="btn btn-primario btn-chico">Registrar transferencia de {pesos(c.e.pendiente)}</button>
                           </form>
-                        </div>
-                      )}
+                        )}
+                        <form action={cambiarEstado}>
+                          <input type="hidden" name="id" value={c.id} /><input type="hidden" name="estado" value={c.estado === "activa" ? "cerrada" : "activa"} />
+                          <button className="btn-texto">{c.estado === "activa" ? "Cerrar celebración" : "Reabrir celebración"}</button>
+                        </form>
+                      </div>
                     </td>
                   </tr>
                 );

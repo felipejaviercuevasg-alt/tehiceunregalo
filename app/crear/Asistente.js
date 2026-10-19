@@ -186,7 +186,7 @@ export default function Asistente({ email }) {
       {paso === 4 && (
         <form className="tarjeta" onSubmit={publicar}>
           <h2 style={{ fontSize: "1.5rem" }}>¿Dónde te transferimos lo reunido?</h2>
-          <p className="gris" style={{ margin: "8px 0 22px" }}>Tus invitados pagan con Mercado Pago y nosotros te transferimos lo reunido a esta cuenta bancaria después de tu celebración. Tus datos se guardan cifrados y solo se usan para hacerte la transferencia.</p>
+          <p className="gris" style={{ margin: "8px 0 22px" }}>Tus invitados pagan con Mercado Pago y nosotros te transferimos lo reunido a esta cuenta cada 7 días, y el saldo final a más tardar 24 horas después de tu celebración. Tus datos se guardan cifrados y solo se usan para hacerte la transferencia.</p>
           <div className="fila">
             <div className="campo"><label htmlFor="bTitular">Nombre del titular</label><input type="text" id="bTitular" maxLength={80} required autoComplete="name" value={banco.titular} onChange={(e) => setBanco({ ...banco, titular: e.target.value })} /></div>
             <div className="campo"><label htmlFor="bRut">RUT del titular</label><input type="text" id="bRut" maxLength={12} required placeholder="12.345.678-9" value={banco.rut} onChange={(e) => setBanco({ ...banco, rut: e.target.value })} /></div>

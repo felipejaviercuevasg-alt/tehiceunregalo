@@ -66,7 +66,7 @@ export default function Inicio() {
               ["Agrega tus regalos soñados", "Nombre, foto o link, y el monto de la meta."],
               ["Elige tus buenos deseos", "Te sugerimos los ideales para tu ocasión. Puedes editarlos o crear los tuyos."],
               ["Comparte el enlace", "Por WhatsApp, Instagram o donde quieras, y mira cómo avanza tu meta."],
-              ["Recibe lo reunido en tu cuenta", "Te lo transferimos a la cuenta bancaria que nos indiques."],
+              ["Recibe tu plata cada semana", "Transferimos lo reunido cada 7 días, y todo a más tardar 24 horas después de tu celebración."],
             ].map(([t, d], i) => (
               <div className="paso" key={t}><div className="n">{i + 1}</div><div><strong>{t}</strong><p>{d}</p></div></div>
             ))}
@@ -109,7 +109,7 @@ export default function Inicio() {
             <span className="etiqueta">Preguntas frecuentes</span>
             <h2 style={{ marginTop: 12 }}>Lo que más nos preguntan</h2>
           </div>
-          <details><summary>¿Cómo recibe el dinero el festejado?</summary><p>Por transferencia a la cuenta bancaria que indica al crear su celebración. Transferimos todo lo reunido después de la fecha de la celebración, según los plazos y condiciones de nuestros términos.</p></details>
+          <details><summary>¿Cómo recibe el dinero el festejado?</summary><p>Por transferencia a la cuenta bancaria que indica al crear su celebración. Transferimos lo reunido cada 7 días, y el saldo final a más tardar 24 horas después de la fecha de la celebración.</p></details>
           <details><summary>¿Qué pasa si un regalo no llega al 100%?</summary><p>El festejado recibe igual todo lo que se reunió. La meta es una guía para los invitados, no un requisito.</p></details>
           <details><summary>¿Cómo pago mi aporte?</summary><p>Con Mercado Pago, de forma segura: con tarjeta de crédito, débito o tu cuenta de Mercado Pago. No necesitas crear una cuenta en Te hice un regalo.</p></details>
           <details><summary>¿Puedo aportar más de una vez o a varios regalos?</summary><p>Sí. Puedes aportar a todos los regalos y deseos que quieras.</p></details>
