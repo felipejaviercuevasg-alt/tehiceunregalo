@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { conciliarPago } from "@/lib/datos";
+import Confeti from "./Confeti";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Gracias · Te hice un regalo", robots: { index: false } };
@@ -16,13 +17,14 @@ export default async function Gracias({ params, searchParams }) {
   if (!estado) estado = sp.status === "approved" ? "aprobado" : sp.status === "pending" || sp.status === "in_process" ? "pendiente" : "rechazado";
 
   const textos = {
-    aprobado: ["¡Gracias por tu regalo!", "Tu pago fue aprobado y ya aparece en la celebración."],
+    aprobado: ["Gracias por tu regalo", "Tu pago fue aprobado y ya aparece en la celebración."],
     pendiente: ["Tu pago está en proceso", "Mercado Pago lo está confirmando. Aparecerá en la celebración apenas se apruebe."],
     rechazado: ["El pago no se completó", "No se realizó ningún cargo. Puedes intentarlo de nuevo con otro medio de pago."],
   };
   const [t, d] = textos[estado] || textos.rechazado;
   return (
     <main className="pagina">
+      {estado === "aprobado" && <Confeti />}
       <div className="contenedor" style={{ maxWidth: 620 }}>
         <div className="tarjeta" style={{ textAlign: "center", padding: "48px 28px" }}>
           <img src="/thur-isotipo-color.svg" alt="" style={{ width: 100, margin: "0 auto 20px" }} />

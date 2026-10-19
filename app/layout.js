@@ -22,7 +22,7 @@ export default async function RootLayout({ children }) {
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
         {/* Script de seguridad de Mercado Pago: identifica el dispositivo y mejora la aprobación de pagos */}
         <script src="https://www.mercadopago.com/v2/security.js" view="checkout" async></script>
       </head>
