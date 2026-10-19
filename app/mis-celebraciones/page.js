@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { adminDb, usuarioActual, esAdmin } from "@/lib/supabase";
 import { pesos, tituloCelebracion } from "@/lib/datos";
 import { limpio } from "@/lib/env";
-import { estadoPagos, fechaCorta } from "@/lib/pagos";
+import { estadoPagos, fechaCorta, comisionPct } from "@/lib/pagos";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Mis celebraciones · Te hice un regalo" };
@@ -22,7 +22,7 @@ export default async function MisCelebraciones() {
   const { data: transf } = ids.length
     ? await db.from("transferencias").select("celebracion_id, monto, comision, final, created_at").in("celebracion_id", ids).order("created_at", { ascending: false })
     : { data: [] };
-  const pct = Number(process.env.COMISION_PCT || 0);
+  const pct = comisionPct();
 
   return (
     <main className="pagina">

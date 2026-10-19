@@ -3,12 +3,11 @@ import { revalidatePath } from "next/cache";
 import { adminDb, usuarioActual, esAdmin } from "@/lib/supabase";
 import { descifrar } from "@/lib/cripto";
 import { pesos, tituloCelebracion } from "@/lib/datos";
-import { estadoPagos, ETIQUETA_ESTADO, fechaCorta } from "@/lib/pagos";
+import { estadoPagos, ETIQUETA_ESTADO, fechaCorta, comisionPct } from "@/lib/pagos";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Administración · Te hice un regalo", robots: { index: false } };
 
-const comisionPct = () => Number(process.env.COMISION_PCT || 0);
 
 async function exigirAdmin() {
   const user = await usuarioActual();
