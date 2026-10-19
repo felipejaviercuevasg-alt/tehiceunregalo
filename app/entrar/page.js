@@ -14,11 +14,25 @@ function Formulario() {
   async function enviar(e) {
     e.preventDefault();
     setEstado("enviando");
-    const sb = browserClient();
-    const destino = `${window.location.origin}/auth/callback?next=${encodeURIComponent(siguiente.startsWith("/") ? siguiente : "/")}`;
-    const { error } = await sb.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: destino } });
-    if (error) { setError("No pudimos enviar el correo. Revisa la dirección e inténtalo de nuevo en un minuto."); setEstado("error"); }
-    else setEstado("enviado");
+    let error;
+    try {
+      const sb = browserClient();
+      const destino = `${window.location.origin}/auth/callback?next=${encodeURIComponent(siguiente.startsWith("/") ? siguiente : "/")}`;
+      ({ error } = await sb.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: destino } }));
+    } catch (e) {
+      error = e;
+    }
+    if (error) {
+      const msg = String(error.message || error);
+      const status = error.status ? ` (${error.status})` : "";
+      let txt = "No pudimos enviar el correo.";
+      if (/rate limit|too many|security purposes/i.test(msg)) txt = "Se enviaron demasiados correos seguidos. Espera unos minutos e inténtalo de nuevo.";
+      else if (/signups? not allowed|signup is disabled/i.test(msg)) txt = "El registro de usuarios nuevos está desactivado en Supabase.";
+      else if (/invalid api key|apikey|supabaseUrl|supabaseKey/i.test(msg)) txt = "La web no está bien conectada con Supabase (revisa las claves en Vercel).";
+      else if (/invalid.*email|email.*invalid/i.test(msg)) txt = "Ese correo no parece válido. Revísalo.";
+      setError(`${txt} Detalle técnico: ${msg}${status}`);
+      setEstado("error");
+    } else setEstado("enviado");
   }
 
   if (estado === "enviado") {
@@ -39,6 +53,7 @@ function Formulario() {
         <label htmlFor="email">Tu correo</label>
         <input id="email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nombre@correo.cl" />
       </div>
+      {params.get("error") && estado === "inicio" && <p className="error" role="alert" style={{ marginBottom: 14 }}>El enlace no funcionó o ya expiró. Pide uno nuevo y ábrelo en este mismo navegador.</p>}
       <button className="btn btn-oscuro" disabled={estado === "enviando"}>{estado === "enviando" ? "Enviando…" : "Enviarme el enlace"}</button>
       {estado === "error" && <p className="error" role="alert">{error}</p>}
     </form>
