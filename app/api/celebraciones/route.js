@@ -4,6 +4,7 @@ import { adminDb, usuarioActual } from "@/lib/supabase";
 import { cifrar } from "@/lib/cripto";
 import { rutValido } from "@/lib/rut";
 import { tituloCelebracion } from "@/lib/datos";
+import { leerLugar } from "@/lib/lugar";
 
 const txt = (v, max) => String(v ?? "").trim().slice(0, max);
 
@@ -47,11 +48,15 @@ export async function POST(request) {
     return NextResponse.json({ error: "Revisa los datos de la cuenta bancaria." }, { status: 400 });
   }
 
+  const lg = leerLugar(b);
+  if (lg.error) return NextResponse.json({ error: lg.error }, { status: 400 });
+
   const db = adminDb();
   const slug = crearSlug(nombre);
   const { data: cel, error } = await db.from("celebraciones").insert({
     slug, owner_id: user.id, owner_email: user.email, nombre, ocasion, edad, fecha,
     mensaje: txt(b.mensaje, 400) || null,
+    ...lg.campos,
     banco_cifrado: cifrar(banco),
     banco_resumen: `${banco.banco} · ${banco.tipo} · ****${banco.numero.slice(-4)}`,
   }).select("id, slug, nombre, ocasion").single();

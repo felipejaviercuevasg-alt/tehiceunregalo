@@ -4,6 +4,7 @@ import { cifrar } from "@/lib/cripto";
 import { rutValido } from "@/lib/rut";
 import { TEMAS, posValida } from "@/lib/temas";
 import { pesos } from "@/lib/datos";
+import { leerLugar } from "@/lib/lugar";
 
 const txt = (v, max) => String(v ?? "").trim().slice(0, max);
 const err = (error, status = 400) => NextResponse.json({ error }, { status });
@@ -34,6 +35,9 @@ export async function PUT(request, { params }) {
     tema: TEMAS[b.tema] ? b.tema : "azul",
     portada_pos: posValida(b.portada_pos),
   };
+  const lg = leerLugar(b);
+  if (lg.error) return err(lg.error);
+  Object.assign(cambios, lg.campos);
   if (b.portada !== undefined) {
     if (b.portada === "" || b.portada === null) cambios.portada = null;
     else if (fotoValida(b.portada, 1200000)) cambios.portada = b.portada;

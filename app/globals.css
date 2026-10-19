@@ -263,3 +263,10 @@ details p{color:var(--gris);margin-top:10px;max-width:760px}
 .vista-foto.angosta h3{font-size:1rem}
 .vista-foto.angosta .etiqueta{font-size:.6rem}
 .vista-foto h3{color:var(--p-texto)}
+.donde{margin-top:14px}
+.donde-txt{display:flex;gap:8px;align-items:flex-start;font-weight:600;color:var(--p-texto,var(--crema))}
+.donde-txt svg{width:20px;height:20px;flex-shrink:0;margin-top:3px;color:var(--p-acento,var(--mostaza))}
+.donde-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chip-link{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border-radius:999px;background:var(--p-caja,rgba(251,246,236,.12));color:var(--p-texto,var(--crema));font-weight:700;font-size:.88rem;text-decoration:none;box-shadow:inset 0 0 0 1.5px currentColor}
+.chip-link:hover{background:var(--p-acento,var(--mostaza));color:var(--azul)}
+input[type=time]{width:100%;min-height:48px;padding:12px 14px;border:1.5px solid #CFC6B5;border-radius:12px;font:inherit;color:var(--azul);background:var(--blanco)}

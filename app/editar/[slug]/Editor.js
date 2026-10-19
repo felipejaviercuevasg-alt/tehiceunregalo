@@ -63,7 +63,7 @@ function mover(lista, i, d) {
 }
 
 export default function Editor({ inicial }) {
-  const [datos, setDatos] = useState({ nombre: inicial.nombre, edad: inicial.edad, fecha: inicial.fecha, mensaje: inicial.mensaje });
+  const [datos, setDatos] = useState({ nombre: inicial.nombre, edad: inicial.edad, fecha: inicial.fecha, mensaje: inicial.mensaje, hora: inicial.hora, lugar: inicial.lugar, direccion: inicial.direccion, mapa_link: inicial.mapa_link });
   const [tema, setTema] = useState(inicial.tema);
   const [portada, setPortada] = useState(inicial.portada);
   const [portadaCambio, setPortadaCambio] = useState(false);
@@ -123,6 +123,7 @@ export default function Editor({ inicial }) {
     setError(""); setOk(false);
     if (!datos.nombre.trim()) return setError("Escribe un nombre.");
     if (!datos.fecha) return setError("Indica la fecha de la celebración.");
+    if (datos.mapa_link && !/^https:\/\//i.test(datos.mapa_link.trim())) return setError("El enlace del mapa debe empezar con https://");
     for (const r of regalos) {
       if (!r.nombre.trim()) return setError("Hay un regalo sin nombre.");
       if (!(Number(r.meta) >= 1000)) return setError(`La meta de "${r.nombre}" debe ser de al menos $1.000.`);
@@ -221,6 +222,12 @@ export default function Editor({ inicial }) {
           {inicial.ocasion === "cumpleanos" && <div className="campo"><label htmlFor="eEdad">Años que cumples</label><input type="number" id="eEdad" min={1} max={120} value={datos.edad} onChange={(e) => { setDatos({ ...datos, edad: e.target.value }); marcar(); }} /></div>}
           <div className="campo"><label htmlFor="eFecha">Fecha de la celebración</label><input type="date" id="eFecha" value={datos.fecha} onChange={(e) => { setDatos({ ...datos, fecha: e.target.value }); marcar(); }} /><p className="ayuda">El saldo final se transfiere a más tardar 24 horas después de esta fecha.</p></div>
         </div>
+        <div className="fila">
+          <div className="campo"><label htmlFor="eHora">Hora <span className="gris" style={{ fontWeight: 400 }}>(opcional)</span></label><input type="time" id="eHora" value={datos.hora} onChange={(e) => { setDatos({ ...datos, hora: e.target.value }); marcar(); }} /></div>
+          <div className="campo"><label htmlFor="eLugar">Lugar <span className="gris" style={{ fontWeight: 400 }}>(opcional)</span></label><input type="text" id="eLugar" maxLength={100} value={datos.lugar} onChange={(e) => { setDatos({ ...datos, lugar: e.target.value }); marcar(); }} placeholder="Ej: Casa de mis papás, Restaurante Los Robles" /></div>
+        </div>
+        <div className="campo"><label htmlFor="eDir">Dirección <span className="gris" style={{ fontWeight: 400 }}>(opcional)</span></label><input type="text" id="eDir" maxLength={200} value={datos.direccion} onChange={(e) => { setDatos({ ...datos, direccion: e.target.value }); marcar(); }} placeholder="Ej: Av. Providencia 1234, Providencia" /><p className="ayuda">Con la dirección creamos solos los botones de Google Maps y Waze. Ojo: la verá cualquiera que tenga el enlace.</p></div>
+        <div className="campo"><label htmlFor="eMapa">Enlace de Google Maps <span className="gris" style={{ fontWeight: 400 }}>(opcional)</span></label><input type="url" id="eMapa" maxLength={500} value={datos.mapa_link} onChange={(e) => { setDatos({ ...datos, mapa_link: e.target.value }); marcar(); }} placeholder="https://maps.app.goo.gl/…" /><p className="ayuda">Si quieres el punto exacto: en Google Maps busca el lugar, toca <strong>Compartir</strong> y pega aquí el enlace.</p></div>
         <div className="campo"><label htmlFor="eMsj">Mensaje para tus invitados</label><textarea id="eMsj" maxLength={400} value={datos.mensaje} onChange={(e) => { setDatos({ ...datos, mensaje: e.target.value }); marcar(); }} placeholder="Ej: ¡Gracias por acompañarme! Cualquier aporte me acerca a cumplir mis sueños." /></div>
       </section>
 

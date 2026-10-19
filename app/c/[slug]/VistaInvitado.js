@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
 import { estiloPortada } from "@/lib/temas";
+import { enlacesLugar, horaBonita } from "@/lib/lugar";
 
 const pesos = (n) => "$" + Math.round(n || 0).toLocaleString("es-CL");
 const OCASIONES = { cumpleanos: "Cumpleaños", matrimonio: "Matrimonio", "baby-shower": "Baby shower" };
@@ -86,7 +87,20 @@ export default function VistaInvitado({ cel, titulo, demo = false, esDueno = fal
         <div className="contenedor">
           <span className="etiqueta">{demo ? "Ejemplo · " : ""}{OCASIONES[cel.ocasion]}</span>
           <h1>{titulo}</h1>
-          <p className="fecha">{fechaBonita(cel.fecha)}</p>
+          <p className="fecha">{fechaBonita(cel.fecha)}{cel.hora ? ` · ${horaBonita(cel.hora)}` : ""}</p>
+          {(() => {
+            const l = enlacesLugar(cel, titulo);
+            return (
+              <div className="donde">
+                {l.donde && <p className="donde-txt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" /></svg>{l.donde}</p>}
+                <div className="donde-btns">
+                  {l.mapa && <a className="chip-link" href={l.mapa} target="_blank" rel="noopener noreferrer">Cómo llegar · Google Maps</a>}
+                  {l.waze && <a className="chip-link" href={l.waze} target="_blank" rel="noopener noreferrer">Waze</a>}
+                  {l.calendario && !demo && <a className="chip-link" href={l.calendario} target="_blank" rel="noopener noreferrer">Agregar a mi calendario</a>}
+                </div>
+              </div>
+            );
+          })()}
           {cel.mensaje && <p className="mensaje">“{cel.mensaje}”</p>}
           <div className="resumen">
             <div><strong>{pesos(cel.total)}</strong><span>regalado hasta ahora</span></div>

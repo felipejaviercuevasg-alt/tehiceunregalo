@@ -29,7 +29,7 @@ function fotoComoDato(file) {
 export default function Asistente({ email }) {
   const [paso, setPaso] = useState(1);
   const [ocasion, setOcasion] = useState("cumpleanos");
-  const [datos, setDatos] = useState({ nombre: "", edad: "", fecha: "", mensaje: "" });
+  const [datos, setDatos] = useState({ nombre: "", edad: "", fecha: "", mensaje: "", hora: "", lugar: "", direccion: "", mapa_link: "" });
   const [regalos, setRegalos] = useState([]);
   const [nuevo, setNuevo] = useState({ nombre: "", meta: "", link: "", desc: "" });
   const fotoRef = useRef(null);
@@ -47,6 +47,7 @@ export default function Asistente({ email }) {
   function aPaso2(e) {
     e.preventDefault();
     if (!datos.nombre.trim()) return setError("Escribe un nombre.");
+    if (datos.mapa_link && !/^https:\/\//i.test(datos.mapa_link.trim())) return setError("El enlace del mapa debe empezar con https://");
     ir(2);
   }
 
@@ -124,6 +125,12 @@ export default function Asistente({ email }) {
               )}
               <div className="campo"><label htmlFor="fecha">Fecha de la celebración</label><input type="date" id="fecha" required value={datos.fecha} onChange={(e) => setDatos({ ...datos, fecha: e.target.value })} /></div>
             </div>
+            <div className="fila">
+              <div className="campo"><label htmlFor="hora">Hora <span className="gris" style={{ fontWeight: 400 }}>(opcional)</span></label><input type="time" id="hora" value={datos.hora} onChange={(e) => setDatos({ ...datos, hora: e.target.value })} /></div>
+              <div className="campo"><label htmlFor="lugar">Lugar <span className="gris" style={{ fontWeight: 400 }}>(opcional)</span></label><input type="text" id="lugar" maxLength={100} value={datos.lugar} onChange={(e) => setDatos({ ...datos, lugar: e.target.value })} placeholder="Ej: Restaurante Los Robles" /></div>
+            </div>
+            <div className="campo"><label htmlFor="direccion">Dirección <span className="gris" style={{ fontWeight: 400 }}>(opcional)</span></label><input type="text" id="direccion" maxLength={200} value={datos.direccion} onChange={(e) => setDatos({ ...datos, direccion: e.target.value })} placeholder="Ej: Av. Providencia 1234, Providencia" /><p className="ayuda">Tus invitados verán botones para llegar con Google Maps o Waze. Puedes cambiarlo después.</p></div>
+            <div className="campo"><label htmlFor="mapa">Enlace de Google Maps <span className="gris" style={{ fontWeight: 400 }}>(opcional)</span></label><input type="url" id="mapa" maxLength={500} value={datos.mapa_link} onChange={(e) => setDatos({ ...datos, mapa_link: e.target.value })} placeholder="https://maps.app.goo.gl/…" /></div>
             <div className="campo"><label htmlFor="mensaje">Mensaje para tus invitados <span className="gris" style={{ fontWeight: 400 }}>(opcional)</span></label><textarea id="mensaje" maxLength={400} value={datos.mensaje} onChange={(e) => setDatos({ ...datos, mensaje: e.target.value })} placeholder="Ej: ¡Gracias por acompañarme! Cualquier aporte me acerca a cumplir mis sueños." /></div>
           </div>
           {error && <p className="error" role="alert">{error}</p>}
