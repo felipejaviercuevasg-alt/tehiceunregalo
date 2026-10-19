@@ -9,6 +9,8 @@ export async function POST(request) {
   try { b = await request.json(); } catch { return NextResponse.json({ error: "Datos inválidos." }, { status: 400 }); }
   const nombre = txt(b.nombre, 60);
   if (!nombre) return NextResponse.json({ error: "Escribe tu nombre." }, { status: 400 });
+  const email = txt(b.email, 120).toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return NextResponse.json({ error: "Escribe un correo válido." }, { status: 400 });
 
   const db = adminDb();
   const { data: cel } = await db.from("celebraciones").select("id, slug, nombre, estado").eq("slug", txt(b.slug, 80)).maybeSingle();
@@ -46,7 +48,7 @@ export async function POST(request) {
   if (error) { console.error(error); return NextResponse.json({ error: "No pudimos registrar tu aporte." }, { status: 500 }); }
 
   try {
-    const url = await crearPreferencia({ aporteId: aporte.id, titulo, monto: aporte.monto, slug: cel.slug });
+    const url = await crearPreferencia({ aporteId: aporte.id, titulo, monto: aporte.monto, slug: cel.slug, pagador: { nombre, email } });
     return NextResponse.json({ url });
   } catch (e) {
     console.error(e);

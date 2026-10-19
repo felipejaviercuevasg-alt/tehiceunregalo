@@ -22,6 +22,7 @@ export default function VistaInvitado({ cel, titulo, demo = false }) {
   const [monto, setMonto] = useState(10000);
   const [otro, setOtro] = useState("");
   const [nombre, setNombre] = useState("");
+  const [email, setEmail] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -49,6 +50,7 @@ export default function VistaInvitado({ cel, titulo, demo = false }) {
   async function pagar(e) {
     e.preventDefault();
     if (!nombre.trim()) return setError("Escribe tu nombre.");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setError("Escribe un correo válido.");
     const m = montoActual();
     if (m < 1000) return setError("El mínimo es $1.000.");
     if (demo) return setError("Esta es una celebración de ejemplo. Crea la tuya para recibir regalos de verdad.");
@@ -57,7 +59,7 @@ export default function VistaInvitado({ cel, titulo, demo = false }) {
       const res = await fetch("/api/aportes", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          slug: cel.slug, nombre: nombre.trim(), mensaje: mensaje.trim(),
+          slug: cel.slug, nombre: nombre.trim(), email: email.trim(), mensaje: mensaje.trim(),
           ...(actual.tipo === "regalo" ? { regaloId: actual.item.id, porcentaje: pct } : { deseoId: actual.item.id, monto: m }),
         }),
       });
@@ -174,6 +176,7 @@ export default function VistaInvitado({ cel, titulo, demo = false }) {
                 </div>
               )}
               <div style={{ marginTop: 20 }} className="campo"><label htmlFor="deNombre">Tu nombre</label><input type="text" id="deNombre" maxLength={60} required value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Tío Jorge" /></div>
+              <div className="campo"><label htmlFor="deEmail">Tu correo</label><input type="email" id="deEmail" maxLength={120} required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Para enviarte el comprobante" /><p className="ayuda">No se muestra en la página.</p></div>
               <div className="campo"><label htmlFor="deMsj">Mensaje <span className="gris" style={{ fontWeight: 400 }}>(opcional)</span></label><textarea id="deMsj" maxLength={280} value={mensaje} onChange={(e) => setMensaje(e.target.value)} placeholder="Unas palabras para su día" /></div>
               <p className="aviso">Pagarás de forma segura en <strong>Mercado Pago</strong>. Tu nombre y mensaje serán visibles en esta página; el monto exacto solo lo ve el festejado.</p>
               {error && <p className="error" role="alert">{error}</p>}
