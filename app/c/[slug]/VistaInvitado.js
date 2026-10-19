@@ -2,6 +2,8 @@
 import { useState, useRef } from "react";
 import { estiloPortada } from "@/lib/temas";
 import { enlacesLugar, horaBonita } from "@/lib/lugar";
+import { REDES } from "@/lib/redes";
+import IconoRed from "./IconoRed";
 
 const pesos = (n) => "$" + Math.round(n || 0).toLocaleString("es-CL");
 const OCASIONES = { cumpleanos: "Cumpleaños", matrimonio: "Matrimonio", "baby-shower": "Baby shower" };
@@ -101,6 +103,13 @@ export default function VistaInvitado({ cel, titulo, demo = false, esDueno = fal
               </div>
             );
           })()}
+          {REDES.some((r) => cel.redes?.[r.id]) && (
+            <div className="redes" aria-label={`Redes sociales de ${cel.nombre}`}>
+              {REDES.filter((r) => cel.redes?.[r.id]).map((r) => (
+                <a key={r.id} className="red" href={cel.redes[r.id]} target="_blank" rel="noopener noreferrer nofollow" aria-label={`${r.nombre} de ${cel.nombre}`} title={r.nombre}><IconoRed red={r.id} /></a>
+              ))}
+            </div>
+          )}
           {cel.mensaje && <p className="mensaje">“{cel.mensaje}”</p>}
           <div className="resumen">
             <div><strong>{pesos(cel.total)}</strong><span>regalado hasta ahora</span></div>

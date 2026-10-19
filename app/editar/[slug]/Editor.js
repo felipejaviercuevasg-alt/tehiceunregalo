@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { deseosPara } from "@/lib/deseos";
 import { rutValido } from "@/lib/rut";
 import { TEMAS, estiloPortada, posValida } from "@/lib/temas";
+import { REDES, enlaceRed, valorEditable } from "@/lib/redes";
 
 const BANCOS = ["Banco de Chile / Edwards", "BancoEstado", "Santander", "BCI / MACH", "Scotiabank", "Itaú", "Banco Security", "Banco BICE", "Banco Falabella", "Banco Ripley", "Banco Consorcio", "Banco Internacional", "Coopeuch", "Tenpo", "Mercado Pago", "Otro"];
 const OCASIONES = { cumpleanos: "Cumpleaños", matrimonio: "Matrimonio", "baby-shower": "Baby shower" };
@@ -64,6 +65,7 @@ function mover(lista, i, d) {
 
 export default function Editor({ inicial }) {
   const [datos, setDatos] = useState({ nombre: inicial.nombre, edad: inicial.edad, fecha: inicial.fecha, mensaje: inicial.mensaje, hora: inicial.hora, lugar: inicial.lugar, direccion: inicial.direccion, mapa_link: inicial.mapa_link });
+  const [redes, setRedes] = useState(() => Object.fromEntries(REDES.map((r) => [r.id, valorEditable(r.id, inicial.redes?.[r.id])])));
   const [tema, setTema] = useState(inicial.tema);
   const [portada, setPortada] = useState(inicial.portada);
   const [portadaCambio, setPortadaCambio] = useState(false);
@@ -124,6 +126,7 @@ export default function Editor({ inicial }) {
     if (!datos.nombre.trim()) return setError("Escribe un nombre.");
     if (!datos.fecha) return setError("Indica la fecha de la celebración.");
     if (datos.mapa_link && !/^https:\/\//i.test(datos.mapa_link.trim())) return setError("El enlace del mapa debe empezar con https://");
+    for (const r of REDES) if (enlaceRed(r.id, redes[r.id]) === null) return setError(`Revisa tu ${r.nombre}: escribe tu usuario (ej: ${r.ej}) o el enlace a tu perfil.`);
     for (const r of regalos) {
       if (!r.nombre.trim()) return setError("Hay un regalo sin nombre.");
       if (!(Number(r.meta) >= 1000)) return setError(`La meta de "${r.nombre}" debe ser de al menos $1.000.`);
@@ -143,7 +146,7 @@ export default function Editor({ inicial }) {
       const res = await fetch(`/api/celebraciones/${inicial.id}`, {
         method: "PUT", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...datos, tema, estado: abierta ? "activa" : "cerrada", portada_pos: `${pos[0]}% ${pos[1]}%`,
+          ...datos, tema, estado: abierta ? "activa" : "cerrada", portada_pos: `${pos[0]}% ${pos[1]}%`, redes,
           ...(portadaCambio ? { portada } : {}),
           regalos: regalos.map((r) => ({ id: r.id, nombre: r.nombre, descripcion: r.descripcion, link: r.link.trim(), meta: Math.round(Number(r.meta)), ...(r.fotoCambio ? { foto: r.foto } : {}) })),
           deseos: deseos.map((d) => ({ id: d.id, titulo: d.titulo, descripcion: d.descripcion })),
@@ -229,6 +232,24 @@ export default function Editor({ inicial }) {
         <div className="campo"><label htmlFor="eDir">Dirección <span className="gris" style={{ fontWeight: 400 }}>(opcional)</span></label><input type="text" id="eDir" maxLength={200} value={datos.direccion} onChange={(e) => { setDatos({ ...datos, direccion: e.target.value }); marcar(); }} placeholder="Ej: Av. Providencia 1234, Providencia" /><p className="ayuda">Con la dirección creamos solos los botones de Google Maps y Waze. Ojo: la verá cualquiera que tenga el enlace.</p></div>
         <div className="campo"><label htmlFor="eMapa">Enlace de Google Maps <span className="gris" style={{ fontWeight: 400 }}>(opcional)</span></label><input type="url" id="eMapa" maxLength={500} value={datos.mapa_link} onChange={(e) => { setDatos({ ...datos, mapa_link: e.target.value }); marcar(); }} placeholder="https://maps.app.goo.gl/…" /><p className="ayuda">Si quieres el punto exacto: en Google Maps busca el lugar, toca <strong>Compartir</strong> y pega aquí el enlace.</p></div>
         <div className="campo"><label htmlFor="eMsj">Mensaje para tus invitados</label><textarea id="eMsj" maxLength={400} value={datos.mensaje} onChange={(e) => { setDatos({ ...datos, mensaje: e.target.value }); marcar(); }} placeholder="Ej: ¡Gracias por acompañarme! Cualquier aporte me acerca a cumplir mis sueños." /></div>
+      </section>
+
+      {/* Redes */}
+      <section className="tarjeta ed-seccion">
+        <h2>Tus redes sociales</h2>
+        <p className="gris">Aparecen como íconos en tu portada. Escribe tu usuario o pega el enlace a tu perfil. Deja en blanco las que no quieras mostrar.</p>
+        <div className="fila">
+          {REDES.map((r) => {
+            const malo = enlaceRed(r.id, redes[r.id]) === null;
+            return (
+              <div className="campo" key={r.id}>
+                <label htmlFor={`red-${r.id}`}>{r.nombre}</label>
+                <input type="text" id={`red-${r.id}`} maxLength={300} autoCapitalize="none" autoCorrect="off" spellCheck={false} value={redes[r.id]} placeholder={r.ej} aria-invalid={malo} onChange={(e) => { setRedes({ ...redes, [r.id]: e.target.value }); marcar(); }} />
+                {malo && <p className="ayuda" style={{ color: "var(--terracota-txt)" }}>Escribe tu usuario (ej: {r.ej}) o el enlace de {r.nombre}.</p>}
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       {/* Regalos */}

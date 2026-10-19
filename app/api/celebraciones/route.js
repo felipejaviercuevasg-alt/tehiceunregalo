@@ -5,6 +5,7 @@ import { cifrar } from "@/lib/cripto";
 import { rutValido } from "@/lib/rut";
 import { tituloCelebracion } from "@/lib/datos";
 import { leerLugar } from "@/lib/lugar";
+import { leerRedes } from "@/lib/redes";
 
 const txt = (v, max) => String(v ?? "").trim().slice(0, max);
 
@@ -50,6 +51,8 @@ export async function POST(request) {
 
   const lg = leerLugar(b);
   if (lg.error) return NextResponse.json({ error: lg.error }, { status: 400 });
+  const rd = leerRedes(b.redes);
+  if (rd.error) return NextResponse.json({ error: rd.error }, { status: 400 });
 
   const db = adminDb();
   const slug = crearSlug(nombre);
@@ -57,6 +60,7 @@ export async function POST(request) {
     slug, owner_id: user.id, owner_email: user.email, nombre, ocasion, edad, fecha,
     mensaje: txt(b.mensaje, 400) || null,
     ...lg.campos,
+    redes: rd.redes,
     banco_cifrado: cifrar(banco),
     banco_resumen: `${banco.banco} · ${banco.tipo} · ****${banco.numero.slice(-4)}`,
   }).select("id, slug, nombre, ocasion").single();

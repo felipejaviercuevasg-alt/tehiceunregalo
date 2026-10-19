@@ -2,6 +2,7 @@
 import { useState, useRef } from "react";
 import { deseosPara } from "@/lib/deseos";
 import { rutValido } from "@/lib/rut";
+import { REDES, enlaceRed } from "@/lib/redes";
 
 const PASOS = ["Tu celebración", "Regalos", "Buenos deseos", "Recibir el dinero", "Compartir"];
 const BANCOS = ["Banco de Chile / Edwards", "BancoEstado", "Santander", "BCI / MACH", "Scotiabank", "Itaú", "Banco Security", "Banco BICE", "Banco Falabella", "Banco Ripley", "Banco Consorcio", "Banco Internacional", "Coopeuch", "Tenpo", "Mercado Pago", "Otro"];
@@ -36,6 +37,7 @@ export default function Asistente({ email }) {
   const [deseos, setDeseos] = useState([]);
   const [claveDeseos, setClaveDeseos] = useState("");
   const [banco, setBanco] = useState({ titular: "", rut: "", banco: "", tipo: "", numero: "", email: email || "" });
+  const [redes, setRedes] = useState({});
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [resultado, setResultado] = useState(null);
@@ -48,6 +50,7 @@ export default function Asistente({ email }) {
     e.preventDefault();
     if (!datos.nombre.trim()) return setError("Escribe un nombre.");
     if (datos.mapa_link && !/^https:\/\//i.test(datos.mapa_link.trim())) return setError("El enlace del mapa debe empezar con https://");
+    for (const r of REDES) if (enlaceRed(r.id, redes[r.id]) === null) return setError(`Revisa tu ${r.nombre}: escribe tu usuario (ej: ${r.ej}) o el enlace a tu perfil.`);
     ir(2);
   }
 
@@ -86,7 +89,7 @@ export default function Asistente({ email }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ocasion, ...datos,
+          ocasion, ...datos, redes,
           regalos,
           deseos: deseos.filter((d) => d.activo && d.t.trim().length > 10).map((d) => ({ titulo: d.t.trim(), descripcion: d.d.trim() })),
           banco: { ...banco, numero: banco.numero.replace(/[\s-]/g, "") },
@@ -131,6 +134,14 @@ export default function Asistente({ email }) {
             </div>
             <div className="campo"><label htmlFor="direccion">Dirección <span className="gris" style={{ fontWeight: 400 }}>(opcional)</span></label><input type="text" id="direccion" maxLength={200} value={datos.direccion} onChange={(e) => setDatos({ ...datos, direccion: e.target.value })} placeholder="Ej: Av. Providencia 1234, Providencia" /><p className="ayuda">Tus invitados verán botones para llegar con Google Maps o Waze. Puedes cambiarlo después.</p></div>
             <div className="campo"><label htmlFor="mapa">Enlace de Google Maps <span className="gris" style={{ fontWeight: 400 }}>(opcional)</span></label><input type="url" id="mapa" maxLength={500} value={datos.mapa_link} onChange={(e) => setDatos({ ...datos, mapa_link: e.target.value })} placeholder="https://maps.app.goo.gl/…" /></div>
+            <details className="mas-opciones">
+              <summary>Agregar mis redes sociales (opcional)</summary>
+              <div className="fila" style={{ marginTop: 14 }}>
+                {REDES.map((r) => (
+                  <div className="campo" key={r.id}><label htmlFor={`cr-${r.id}`}>{r.nombre}</label><input type="text" id={`cr-${r.id}`} maxLength={300} autoCapitalize="none" autoCorrect="off" spellCheck={false} placeholder={r.ej} value={redes[r.id] || ""} onChange={(e) => setRedes({ ...redes, [r.id]: e.target.value })} /></div>
+                ))}
+              </div>
+            </details>
             <div className="campo"><label htmlFor="mensaje">Mensaje para tus invitados <span className="gris" style={{ fontWeight: 400 }}>(opcional)</span></label><textarea id="mensaje" maxLength={400} value={datos.mensaje} onChange={(e) => setDatos({ ...datos, mensaje: e.target.value })} placeholder="Ej: ¡Gracias por acompañarme! Cualquier aporte me acerca a cumplir mis sueños." /></div>
           </div>
           {error && <p className="error" role="alert">{error}</p>}
