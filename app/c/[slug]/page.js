@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { celebracionPublica, tituloCelebracion } from "@/lib/datos";
+import { usuarioActual } from "@/lib/supabase";
 import VistaInvitado from "./VistaInvitado";
 
 export const dynamic = "force-dynamic";
@@ -18,9 +19,10 @@ export default async function Celebracion({ params }) {
   if (!c) notFound();
   // Solo lo necesario para el navegador: sin dueño ni montos individuales.
   const publico = {
-    slug: c.slug, nombre: c.nombre, ocasion: c.ocasion, fecha: c.fecha, mensaje: c.mensaje, estado: c.estado,
+    slug: c.slug, nombre: c.nombre, ocasion: c.ocasion, fecha: c.fecha, mensaje: c.mensaje, estado: c.estado, portada: c.portada, tema: c.tema,
     total: c.total, personas: c.personas, regalos: c.regalos, deseos: c.deseos,
     aportes: c.aportes.map((a) => ({ nombre: a.nombre, mensaje: a.mensaje, regalo_id: a.regalo_id, deseo_id: a.deseo_id })),
   };
-  return <VistaInvitado cel={publico} titulo={tituloCelebracion(c)} />;
+  const user = await usuarioActual();
+  return <VistaInvitado cel={publico} titulo={tituloCelebracion(c)} esDueno={!!user && user.id === c.owner_id} />;
 }

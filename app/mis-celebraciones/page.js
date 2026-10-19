@@ -81,6 +81,7 @@ export default async function MisCelebraciones() {
                 </details>
               )}
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap", margin: "18px 0" }}>
+                <Link className="btn btn-primario btn-chico" href={`/editar/${c.slug}`}>Editar y personalizar</Link>
                 <Link className="btn btn-oscuro btn-chico" href={`/c/${c.slug}`}>Ver mi celebración</Link>
                 <a className="btn btn-secundario btn-chico" target="_blank" rel="noopener" href={"https://wa.me/?text=" + encodeURIComponent(`${tituloCelebracion(c)} 🎁 Regálale algo que de verdad quiere: ${limpio(process.env.NEXT_PUBLIC_SITE_URL).replace(/\/+$/, "")}/c/${c.slug}`)}>Compartir por WhatsApp</a>
               </div>

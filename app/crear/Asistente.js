@@ -224,6 +224,7 @@ export default function Asistente({ email }) {
             <a className="btn btn-oscuro" target="_blank" rel="noopener" href={"https://wa.me/?text=" + encodeURIComponent(`${resultado.titulo} 🎁 Regálale algo que de verdad quiere: ${resultado.url}`)}>Compartir por WhatsApp</a>
             <a className="btn btn-secundario" href={`/c/${resultado.slug}`}>Ver mi celebración</a>
           </div>
+          <p className="gris" style={{ marginTop: 22 }}>¿Quieres ponerle una foto de portada o cambiar algo? <a href={`/editar/${resultado.slug}`}>Personaliza tu celebración</a> cuando quieras.</p>
         </div>
       )}
     </>

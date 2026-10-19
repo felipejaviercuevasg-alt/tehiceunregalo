@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
+import { estiloPortada } from "@/lib/temas";
 
 const pesos = (n) => "$" + Math.round(n || 0).toLocaleString("es-CL");
 const OCASIONES = { cumpleanos: "Cumpleaños", matrimonio: "Matrimonio", "baby-shower": "Baby shower" };
@@ -15,7 +16,7 @@ function fechaBonita(f) {
   return new Date(f + "T12:00:00").toLocaleDateString("es-CL", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 }
 
-export default function VistaInvitado({ cel, titulo, demo = false }) {
+export default function VistaInvitado({ cel, titulo, demo = false, esDueno = false }) {
   const [pestana, setPestana] = useState(cel.regalos.length ? "regalos" : "deseos");
   const [actual, setActual] = useState(null); // {tipo, item}
   const [pct, setPct] = useState(10);
@@ -76,7 +77,12 @@ export default function VistaInvitado({ cel, titulo, demo = false }) {
 
   return (
     <main>
-      <section className="portada">
+      {esDueno && (
+        <div className="barra-dueno">
+          <div className="contenedor"><span>Así ven tu celebración tus invitados.</span><a href={`/editar/${cel.slug}`}>Editar y personalizar →</a></div>
+        </div>
+      )}
+      <section className={"portada" + (cel.portada ? " con-foto" : "")} style={estiloPortada(cel.tema, cel.portada)}>
         <div className="contenedor">
           <span className="etiqueta">{demo ? "Ejemplo · " : ""}{OCASIONES[cel.ocasion]}</span>
           <h1>{titulo}</h1>
